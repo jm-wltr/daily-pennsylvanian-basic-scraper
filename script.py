@@ -8,7 +8,10 @@ import sys
 
 import daily_event_monitor
 
-import bs4
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from bs4 import BeautifulSoup
+import time
 import requests
 import loguru
 
