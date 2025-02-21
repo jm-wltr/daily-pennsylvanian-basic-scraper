@@ -15,34 +15,37 @@ import loguru
 
 def scrape_data_point():
     """
-    Scrapes the #1 most read article title from The Daily Pennsylvanian home page.
-
-    Returns:
-        str: The most-read article text if found, otherwise an empty string.
+    Scrapes the #1 most read article using Selenium.
     """
-    headers = {
-        "User-Agent": "cis3500-scraper"
-    }
-    req = requests.get("https://www.thedp.com", headers=headers)
-    loguru.logger.info(f"Request URL: {req.url}")
-    loguru.logger.info(f"Request status code: {req.status_code}")
+    options = Options()
+    options.add_argument("--headless")  # Run without opening a browser
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--window-size=1920x1080")
 
-    if req.ok:
-        soup = bs4.BeautifulSoup(req.text, "html.parser")
+    driver = webdriver.Chrome(options=options)
+    driver.get("https://www.thedp.com")
 
-        # Locate the most read section
-        most_read_section = soup.find("span", id="mostRead")
-        loguru.logger.info(f"Most_read_section: {most_read_section}")
+    time.sleep(5)  # Allow JavaScript to load content
 
-        if most_read_section:
-            # Find the first "most read" article link
-            first_most_read = most_read_section.find("a", class_="frontpage-link")
-            loguru.logger.info(f"first_most_read: {first_most_read}")
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    driver.quit()  # Close the browser
 
-            if first_most_read:
-                data_point = first_most_read.text.strip()
-                loguru.logger.info(f"Data point: {data_point}")
-                return data_point
+    most_read_section = soup.find("span", id="mostRead")
+
+    if most_read_section:
+        loguru.logger.info(f"Found #mostRead section:\n{most_read_section.prettify()}")
+
+        first_most_read = most_read_section.find("a", class_="frontpage-link")
+        if first_most_read:
+            data_point = first_most_read.text.strip()
+            loguru.logger.info(f"Most Read Article: {data_point}")
+            return data_point
+        else:
+            loguru.logger.warning("⚠️ No <a> tag with class 'frontpage-link' found inside #mostRead!")
+    else:
+        loguru.logger.warning("❌ Could not find #mostRead section in JavaScript-rendered HTML!")
+
     return ""
 
 
