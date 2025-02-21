@@ -9,7 +9,9 @@ import sys
 import daily_event_monitor
 
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
 import requests
@@ -20,15 +22,20 @@ def scrape_data_point():
     """
     Scrapes the #1 most read article using Selenium.
     """
+    chrome_bin = os.getenv("CHROME_BIN", "/usr/bin/chromium-browser")
+    chromedriver_path = os.getenv("CHROMEDRIVER_PATH", "/usr/bin/chromedriver")
+
     options = Options()
-    options.add_argument("--headless")  # Run without opening a browser
+    options.binary_location = chrome_bin  # Explicitly set Chrome binary
+    options.add_argument("--headless")  # Run without UI
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=1920x1080")
 
-    driver = webdriver.Chrome(options=options)
-    driver.get("https://www.thedp.com")
+    service = Service(chromedriver_path)
+    driver = webdriver.Chrome(service=service, options=options)
 
+    driver.get("https://www.thedp.com")
     time.sleep(5)  # Allow JavaScript to load content
 
     soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -37,17 +44,9 @@ def scrape_data_point():
     most_read_section = soup.find("span", id="mostRead")
 
     if most_read_section:
-        loguru.logger.info(f"Found #mostRead section:\n{most_read_section.prettify()}")
-
         first_most_read = most_read_section.find("a", class_="frontpage-link")
         if first_most_read:
-            data_point = first_most_read.text.strip()
-            loguru.logger.info(f"Most Read Article: {data_point}")
-            return data_point
-        else:
-            loguru.logger.warning("⚠️ No <a> tag with class 'frontpage-link' found inside #mostRead!")
-    else:
-        loguru.logger.warning("❌ Could not find #mostRead section in JavaScript-rendered HTML!")
+            return first_most_read.text.strip()
 
     return ""
 
