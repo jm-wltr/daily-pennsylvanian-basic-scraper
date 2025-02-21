@@ -45,6 +45,9 @@ jobs:
           touch Pipfile
           pipenv install --deploy --dev
 
+      - name: Install Chrome
+        run: sudo apt-get install -y chromium-browser
+
       - name: 🕵️‍♂️ Scrape content and output
         run: |
           pipenv run python ./script.py
