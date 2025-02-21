@@ -32,10 +32,12 @@ def scrape_data_point():
 
         # Locate the most read section
         most_read_section = soup.find("span", id="mostRead")
+        loguru.logger.info(f"Most_read_section: {most_read_section}")
 
         if most_read_section:
             # Find the first "most read" article link
             first_most_read = most_read_section.find("a", class_="frontpage-link")
+            loguru.logger.info(f"first_most_read: {fisrst_most_read}")
 
             if first_most_read:
                 data_point = first_most_read.text.strip()
