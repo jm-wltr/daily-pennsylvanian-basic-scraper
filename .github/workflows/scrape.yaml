@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 20 * * *"  # 📅 Scrape once a day at 8PM, see crontab.guru for help
+    - cron: "0 20 * * *"  # 📅 Scrape once a day at 8PM
 
 name: Scrape Update 🔄
 jobs:
@@ -45,8 +45,15 @@ jobs:
           touch Pipfile
           pipenv install --deploy --dev
 
-      - name: Install Chrome
-        run: sudo apt-get install -y chromium-browser
+      - name: 🏗 Install Chrome & Chromedriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+          echo "CHROMEDRIVER_PATH=$(which chromedriver)" >> $GITHUB_ENV
+          echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
+
+      - name: 📦 Install Selenium
+        run: pipenv install selenium
 
       - name: 🕵️‍♂️ Scrape content and output
         run: |
