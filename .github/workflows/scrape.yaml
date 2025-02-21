@@ -45,12 +45,12 @@ jobs:
           touch Pipfile
           pipenv install --deploy --dev
 
-      - name: 🏗 Install Chrome & Chromedriver
+      - name: 🏗 Install Chromium & Chromedriver
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
-          echo "CHROMEDRIVER_PATH=$(which chromedriver)" >> $GITHUB_ENV
           echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
+          echo "CHROMEDRIVER_PATH=$(which chromedriver)" >> $GITHUB_ENV
 
       - name: 📦 Install Selenium
         run: pipenv install selenium
