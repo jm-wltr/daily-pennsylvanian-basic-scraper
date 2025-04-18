@@ -1,16 +1,18 @@
+name: Scrape Update 🔄
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 6 * * *"  # 📅 Scrape once a day at 6AM
+    - cron: "0 6 * * *"  # 📅 Scrape once a day at 6AM UTC
 
-name: Scrape Update 🔄
 jobs:
   update-logs:
     name: Scrape Update 🔄
     runs-on: ubuntu-latest
+
     permissions:
       actions: write
       checks: write
@@ -29,21 +31,21 @@ jobs:
           python-version: "3.9"
 
       - name: 📦 Install pipenv
-        run: |
-          python -m pip install --upgrade pipenv wheel
+        run: python -m pip install --upgrade pipenv wheel
 
-      - name: 🔄 Check pipenv cache before installing dependencies
-        id: cache-pipenv
+      - name: 💾 Cache pipenv virtualenv (local .venv/)
         uses: actions/cache@v4
         with:
-          path: ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+          path: .venv
+          key: ${{ runner.os }}-pipenv-${{ hashFiles('Pipfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pipenv-
 
       - name: 🛠 Install dependencies
-        if: steps.cache-pipenv.outputs.cache-hit != 'true'
         run: |
-          touch Pipfile
+          export PIPENV_VENV_IN_PROJECT=1
           pipenv install --deploy --dev
+          pipenv install selenium
 
       - name: 🏗 Install Chromium & Chromedriver
         run: |
@@ -52,12 +54,8 @@ jobs:
           echo "CHROME_BIN=/usr/bin/chromium-browser" >> $GITHUB_ENV
           echo "CHROMEDRIVER_PATH=$(which chromedriver)" >> $GITHUB_ENV
 
-      - name: 📦 Install Selenium
-        run: pipenv install selenium
-
       - name: 🕵️‍♂️ Scrape content and output
-        run: |
-          pipenv run python ./script.py
+        run: pipenv run python ./script.py
 
       - name: 🚀 Commit generated logs
         uses: EndBug/add-and-commit@v9
