@@ -41,6 +41,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pipenv-
 
+      - name: 🧹 Remove old .venv if exists
+        run: rm -rf .venv
+
+      - name: 🐍 Create virtual environment
+        run: python -m venv .venv
+
       - name: 🛠 Install dependencies
         run: |
           export PIPENV_VENV_IN_PROJECT=1
